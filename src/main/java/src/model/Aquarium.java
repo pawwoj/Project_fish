@@ -8,15 +8,13 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Builder(toBuilder = true)
-public class Fish {
+public class Aquarium {
     private int id;
     private String name;
-    private String type;
-    private int price;
-    private int aquarium;
+    private int capacity;
 
     @Override
     public String toString() {
-        return this.id + " " + this.name + " " + this.type + " " + this.price;
+        return this.id + " " + this.name + " " + this.capacity;
     }
 }
