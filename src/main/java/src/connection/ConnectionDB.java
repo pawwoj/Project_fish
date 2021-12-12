@@ -1,27 +1,29 @@
 package src.connection;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import lombok.Setter;
 
+import java.sql.*;
+
+@Setter
 public class ConnectionDB {
-    public Connection getConnection() {
+    private String databaseName = "fishproject";
+
+    public Connection getConnectionDB() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             return DriverManager
-                    .getConnection("jdbc:mysql://localhost:3306/fishproject", "root", "dupa");
+                    .getConnection("jdbc:mysql://localhost:3306/" + databaseName, "root", "dupa");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e);
             return null;
         }
     }
 
     public Statement getStatement() {
         try {
-            return getConnection().createStatement();
+            return getConnectionDB().createStatement();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e);
             return null;
         }
     }

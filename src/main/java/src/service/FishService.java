@@ -1,17 +1,22 @@
 package src.service;
 
+import lombok.Getter;
 import src.connection.ConnectionDB;
 import src.model.Aquarium;
 import src.model.Fish;
+import src.validate.DataValidate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
+@Getter
 public class FishService {
     AquariumService aquariumService = new AquariumService();
+    DataValidate dataValidate = new DataValidate();
+    ConnectionDB connectionDB = new ConnectionDB();
 
-    public void addFish() {
+    public void addFish () {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter fish name:");
         String name = scanner.nextLine();
@@ -21,26 +26,24 @@ public class FishService {
         String price = scanner.nextLine();
         System.out.println("Enter aquarium name for fish:");
         String aquariumName = scanner.nextLine();
-        Aquarium aquarium = aquariumService.getAquarium(aquariumName);
-        if (aquarium.getId() == 0) {
-            System.out.println("Wrong name for aquarium: " + aquariumName);
-            return;
-        }
-        if (aquariumService.isAquariumFull(aquarium)) {
-            System.out.println("Aquarium is full: " + aquariumName);
-            return;
-        }
-        ConnectionDB connectionDB = new ConnectionDB();
-        try {
-            connectionDB.getStatement()
-                    .execute("INSERT INTO fish(name, type, price, aquarium_id) VALUES ("
-                            + "'" + name + "', '" + type + "', " + price + ", " + aquarium.getId() + ");");
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (dataValidate.isNameValidate(name)
+                && dataValidate.isNameValidate(type)
+                && dataValidate.isCapacityOrPriceValidate(price)
+                && dataValidate.isNameValidate(aquariumName)) {
+            Aquarium aquarium = aquariumService.getAquarium(aquariumName);
+            if (dataValidate.isNameValidate(aquarium.getName()) && !aquariumService.isAquariumFull(aquarium)) {
+                try {
+                    connectionDB.getStatement()
+                            .execute("INSERT INTO fish(name, type, price, aquarium_id) VALUES ("
+                                    + "'" + name + "','" + type + "'," + price + "," + aquarium.getId() + ");");
+                } catch (SQLException e) {
+                    System.out.println(e);
+                }
+            }
         }
     }
 
-    public void printAllFishesFromAquarium() {
+    public void printAllFishFromAquarium() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter aquarium name:");
         String aquariumName = scanner.nextLine();
@@ -50,7 +53,6 @@ public class FishService {
             System.out.println("Wrong name for aquarium: " + aquariumName);
             return;
         }
-        ConnectionDB connectionDB = new ConnectionDB();
         try {
             ResultSet resultSet = connectionDB.getStatement()
                     .executeQuery("SELECT name, type, price FROM fish WHERE aquarium_id = "
@@ -77,7 +79,6 @@ public class FishService {
         }
         System.out.println("Enter aquarium name:");
         String aquariumName = scanner.nextLine();
-
         Aquarium aquarium = aquariumService.getAquarium(aquariumName);
 
         if (fish.getAquarium() == aquarium.getId()) {
@@ -96,7 +97,6 @@ public class FishService {
     }
 
     public Fish getFish(String fishName) {
-        ConnectionDB connectionDB = new ConnectionDB();
         Fish fish = new Fish();
         try {
             ResultSet resultSet = connectionDB.getStatement()
@@ -115,7 +115,6 @@ public class FishService {
     }
 
     public void updateAquariumForFish(int aquariumId, int fishId) {
-        ConnectionDB connectionDB = new ConnectionDB();
         try {
             connectionDB.getStatement()
                     .execute("UPDATE fish SET aquarium_id = " + aquariumId + " WHERE id =" + fishId + ";");

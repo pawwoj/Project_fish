@@ -1,13 +1,20 @@
 package src.service;
 
+import lombok.Getter;
 import src.connection.ConnectionDB;
+import src.exception.AquariumFullException;
+import src.exception.AquariumNotEmptyException;
 import src.model.Aquarium;
+import src.validate.DataValidate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
+@Getter
 public class AquariumService {
+    ConnectionDB connectionDB = new ConnectionDB();
+    DataValidate dataValidate = new DataValidate();
 
     public void addAquarium() {
         Scanner scanner = new Scanner(System.in);
@@ -15,19 +22,19 @@ public class AquariumService {
         String name = scanner.nextLine();
         System.out.println("Enter aquarium capacity:");
         String capacity = scanner.nextLine();
-
-        ConnectionDB connectionDB = new ConnectionDB();
-        try {
-            connectionDB.getStatement()
-                    .execute("insert into aquarium(name, capacity) values ("
-                            + "'" + name + "', " + capacity + ");");
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (dataValidate.isCapacityOrPriceValidate(capacity) && dataValidate.isNameValidate(name)) {
+            try {
+                connectionDB.getStatement()
+                        .execute("INSERT INTO aquarium(name, capacity) VALUES ("
+                                + "'" + name + "', " + capacity + ");");
+            } catch (SQLException e) {
+                System.out.println(e);
+                System.out.println("For name: " + name + " and capacity : " + capacity);
+            }
         }
     }
 
     public Aquarium getAquarium(String aquariumName) {
-        ConnectionDB connectionDB = new ConnectionDB();
         Aquarium aquarium = new Aquarium();
         try {
             ResultSet resultSet = connectionDB.getStatement()
@@ -38,37 +45,48 @@ public class AquariumService {
                 aquarium.setCapacity(resultSet.getInt(3));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e);
         }
         return aquarium;
     }
 
     public boolean isAquariumFull(Aquarium aquarium) {
-        ConnectionDB connectionDB = new ConnectionDB();
-        boolean isSpace = true;
+        boolean aquariumFull = true;
         try {
             ResultSet resultSet = connectionDB.getStatement()
                     .executeQuery("SELECT COUNT(id) FROM fish WHERE aquarium_id =" + aquarium.getId() + ";");
             while (resultSet.next()) {
-                isSpace = resultSet.getInt(1) >= aquarium.getCapacity();
+                aquariumFull = resultSet.getInt(1) >= aquarium.getCapacity();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e);
         }
-        return isSpace;
+        try {
+            if (aquariumFull) {
+                throw new AquariumFullException("Aquarium if full");
+            }
+        } catch (AquariumFullException e) {
+            System.out.println(e);
+        }
+        return aquariumFull;
     }
 
     public boolean isAquariumEmpty(Aquarium aquarium) {
-        ConnectionDB connectionDB = new ConnectionDB();
         boolean isEmpty = false;
         try {
             ResultSet resultSet = connectionDB.getStatement()
                     .executeQuery("SELECT COUNT(id) FROM fish WHERE aquarium_id =" + aquarium.getId() + ";");
             while (resultSet.next()) {
-                isEmpty = (resultSet.getInt(1) == 0);
+                try {
+                    if (!(isEmpty = (resultSet.getInt(1) == 0))) {
+                        throw new AquariumNotEmptyException("Aquarium is not empty");
+                    }
+                } catch (AquariumNotEmptyException e) {
+                    System.out.println(e);
+                }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e);
         }
         return isEmpty;
     }
@@ -77,22 +95,17 @@ public class AquariumService {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter aquarium name:");
         String name = scanner.nextLine();
-        Aquarium aquarium = getAquarium(name);
-
-        if (aquarium.getId() == 0) {
-            System.out.println("Wrong name for aquarium: " + name);
-            return;
-        }
-        if (!isAquariumEmpty(aquarium)) {
-            System.out.println(name + " aquarium isn't empty");
-            return;
-        }
-        ConnectionDB connectionDB = new ConnectionDB();
-        try {
-            connectionDB.getStatement()
-                    .execute("DELETE FROM aquarium WHERE id = " + aquarium.getId() + ";");
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (dataValidate.isNameValidate(name)) {
+            Aquarium aquarium = getAquarium(name);
+            if (dataValidate.isNameValidate(aquarium.getName()) && isAquariumEmpty(aquarium)) {
+                try {
+                    connectionDB.getStatement()
+                            .execute("DELETE FROM aquarium WHERE id = " + aquarium.getId() + ";");
+                    System.out.println("Aquarium deleted - Success");
+                } catch (SQLException e) {
+                    System.out.println(e);
+                }
+            }
         }
     }
 }
