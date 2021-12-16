@@ -27,7 +27,7 @@ public class Application {
                     aquariumService.addAquarium();
                     break;
                 case "3":
-                    fishService.printAllFishesFromAquarium();
+                    fishService.printAllFishFromAquarium();
                     break;
                 case "4":
                     fishService.moveFish();
