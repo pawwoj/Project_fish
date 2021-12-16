@@ -15,7 +15,7 @@ public class Application {
         while (true) {
             System.out.println(
                     """
-                            | [1] Add fish  | [2]  Add aquarium    | [3]  Print fishes form aquarium |
+                            | [1] Add fish  | [2]  Add aquarium    | [3]  Print fish form aquarium |
                             | [4] Move fish | [5] Remove aquarium  |
                             | [0] Exit""");
             String option = scanner.nextLine();

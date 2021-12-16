@@ -6,20 +6,24 @@ import java.sql.*;
 
 @Setter
 public class ConnectionDB {
-    private String databaseName = "fishproject";
+    private static String dbURL = "jdbc:mysql://localhost:3306/";
+    private static String dbName = "fishproject_test";
+    private static String dbMultiQuery = "?allowMultiQueries=true";
+    private static String user = "root";
+    private static String password = "dupa";
 
-    public Connection getConnectionDB() {
+    public static Connection getConnectionDB() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
             return DriverManager
-                    .getConnection("jdbc:mysql://localhost:3306/" + databaseName, "root", "dupa");
+                    .getConnection(dbURL + dbName + dbMultiQuery
+                            , user, password);
         } catch (Exception e) {
             System.out.println(e);
             return null;
         }
     }
 
-    public Statement getStatement() {
+    public static Statement getStatement() {
         try {
             return getConnectionDB().createStatement();
         } catch (SQLException e) {
