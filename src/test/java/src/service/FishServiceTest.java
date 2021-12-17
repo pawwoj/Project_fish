@@ -22,7 +22,7 @@ class FishServiceTest {
         String queryInsert = """
                 INSERT INTO aquarium() VALUES (1000, 'Atest1' ,1);
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryInsert);
         } catch (Exception e) {
             System.out.println(e);
@@ -36,7 +36,7 @@ class FishServiceTest {
         //When
         fishService.addFish();
         //Then
-        try (ResultSet rs = ConnectionDB.getStatement()
+        try (ResultSet rs = ConnectionDB.getStatementForTestDb()
                 .executeQuery("SELECT * FROM fishproject_test.fish WHERE name='"
                      + fishNameGiven + "';")) {
             while (rs.next()) {
@@ -54,7 +54,7 @@ class FishServiceTest {
                 DELETE FROM aquarium WHERE name = 'Atest1';
                 DELETE FROM fish WHERE aquarium_id = 1000; 
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryDelete);
         } catch (Exception e) {
             System.out.println(e);
@@ -68,7 +68,7 @@ class FishServiceTest {
                 INSERT INTO aquarium() VALUES (1000, 'Atest1' ,1);
                 insert into fish() values (500, 'TestX', 'zloty', 23, 1000); 
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryInsert);
         } catch (Exception e) {
             System.out.println(e);
@@ -88,7 +88,7 @@ class FishServiceTest {
                 DELETE FROM aquarium WHERE name = 'Atest1';
                 DELETE FROM fish WHERE aquarium_id = 1000; 
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryDelete);
         } catch (Exception e) {
             System.out.println(e);
@@ -102,7 +102,7 @@ class FishServiceTest {
                 insert into fish() values (500, 'TestX', 'zloty', 23, 1000); 
                 insert into fish() values (501, 'TestXX', 'silver', 50, 1000);
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryInsert);
         } catch (Exception e) {
             System.out.println(e);
@@ -126,7 +126,7 @@ class FishServiceTest {
                 DELETE FROM aquarium WHERE name = 'Atest1';
                 DELETE FROM fish WHERE aquarium_id = 1000;
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryDelete);
         } catch (Exception e) {
             System.out.println(e);
@@ -140,7 +140,7 @@ class FishServiceTest {
                 INSERT INTO aquarium() VALUES (1001, 'Atest2' ,1);
                 insert into fish() values (500, 'FishX', 'zloty', 23, 1000);
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryInsert);
         } catch (Exception e) {
             System.out.println(e);
@@ -163,7 +163,7 @@ class FishServiceTest {
                 DELETE FROM aquarium WHERE name = 'Atest2';
                 DELETE FROM fish WHERE aquarium_id = 1001;
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryDelete);
         } catch (Exception e) {
             System.out.println(e);
@@ -176,7 +176,7 @@ class FishServiceTest {
                 INSERT INTO aquarium() VALUES (1000, 'Atest1' ,1);
                 insert into fish() values (500, 'FishX', 'zloty', 23, 1000);
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryInsert);
         } catch (Exception e) {
             System.out.println(e);
@@ -192,7 +192,7 @@ class FishServiceTest {
                 DELETE FROM aquarium WHERE name = 'Atest1';
                 DELETE FROM fish WHERE aquarium_id = 1000;
                 """;
-        try (Statement stmt = ConnectionDB.getStatement()) {
+        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
             stmt.execute(queryDelete);
         } catch (Exception e) {
             System.out.println(e);
