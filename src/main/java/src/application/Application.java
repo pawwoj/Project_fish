@@ -8,8 +8,8 @@ import java.util.Scanner;
 public class Application {
     public void run() {
         Scanner scanner = new Scanner(System.in);
-        FishService fishService = new FishService();
-        AquariumService aquariumService = new AquariumService();
+        FishService fishService = new FishService("PROD");
+        AquariumService aquariumService = new AquariumService("PROD");
 
         label:
         while (true) {
@@ -27,7 +27,7 @@ public class Application {
                     aquariumService.addAquarium();
                     break;
                 case "3":
-                    fishService.printAllFishFromAquarium();
+                    System.out.println(aquariumService.getFishSetFromAquarium());
                     break;
                 case "4":
                     fishService.moveFish();

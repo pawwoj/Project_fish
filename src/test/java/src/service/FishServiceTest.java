@@ -1,5 +1,7 @@
 package src.service;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import src.connection.ConnectionDB;
@@ -16,186 +18,99 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class FishServiceTest {
 
-    @Test
-    @DisplayName("Add fish - database contain fish")
-    void shouldSayThatDatabaseContainAddedFish() {
-        String queryInsert = """
-                INSERT INTO aquarium() VALUES (1000, 'Atest1' ,1);
+    @BeforeAll
+    public static void setUp() {
+        String setUpQuery = """
+                INSERT INTO aquarium VALUES(501, 'aquarium1', 4);
+                INSERT INTO fish VALUES(1502, 'fish2', 'typ1' , 12, 501);
+                INSERT INTO fish VALUES(1503, 'fish3', 'typ1' , 12, 501);
+                INSERT INTO aquarium VALUES(502, 'aquarium2', 1);
+                INSERT INTO fish VALUES(1501, 'fish1', 'typ1' , 12, 502);
+                INSERT INTO aquarium VALUES(503, 'aquarium3', 1);
+                INSERT INTO aquarium VALUES(504, 'aquarium4', 1);
                 """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryInsert);
+        try (Statement stmt = ConnectionDB.getStatement("TEST")) {
+            stmt.execute(setUpQuery);
         } catch (Exception e) {
             System.out.println(e);
         }
-        FishService fishService = new FishService();
-        String fishNameGiven = "fishTest1";
-        String data = fishNameGiven + "\r\n" + "typeTest1" + "\r\n" + 21 + "\r\n" + "Atest1";
+    }
+
+    @AfterAll
+    public static void dumpDatabase() {
+        try (Statement stmt = ConnectionDB.getStatement("TEST")) {
+            stmt.execute("TRUNCATE table aquarium");
+        } catch (Exception e) {
+            System.out.println(e);
+
+        }
+        try (Statement stmt = ConnectionDB.getStatement("TEST")) {
+            stmt.execute("TRUNCATE table fish");
+        } catch (Exception e) {
+            System.out.println(e);
+
+        }
+    }
+
+    @Test
+    @DisplayName("Add fish - database contain fish")
+    void shouldSayThatDatabaseContainAddedFish() {
+        FishService fishService = new FishService("TEST");
+        String fishNameGiven = "addFishTest";
+        String data = fishNameGiven + "\r\n" + "type" + "\r\n" + 21 + "\r\n" + "aquarium1";
         System.setIn(new ByteArrayInputStream(data.getBytes()));
         String resultString = "";
-        int resultInt = 0;
         //When
         fishService.addFish();
         //Then
-        try (ResultSet rs = ConnectionDB.getStatementForTestDb()
+        try (ResultSet rs = ConnectionDB.getStatement("TEST")
                 .executeQuery("SELECT * FROM fishproject_test.fish WHERE name='"
-                     + fishNameGiven + "';")) {
+                        + fishNameGiven + "';")) {
             while (rs.next()) {
                 resultString = rs.getString(2);
-                resultInt = rs.getInt(5);
             }
         } catch (SQLException e) {
             System.out.println(e);
         }
 
         assertThat(fishNameGiven).isEqualTo(resultString);
-        assertThat(resultInt).isGreaterThan(0);
-        // After - delete tested record
-        String queryDelete = """
-                DELETE FROM aquarium WHERE name = 'Atest1';
-                DELETE FROM fish WHERE aquarium_id = 1000; 
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryDelete);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
 
     @Test
     @DisplayName("Add fish - Catch AquariumFullException")
     void shouldCatchAquariumFullException() {
-        String queryInsert = """
-                INSERT INTO aquarium() VALUES (1000, 'Atest1' ,1);
-                insert into fish() values (500, 'TestX', 'zloty', 23, 1000); 
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryInsert);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
-        FishService fishService = new FishService();
-        String data = "fishTest1" + "\r\n" + "typeTest1" + "\r\n" + 21 + "\r\n" + "Atest1";
+        FishService fishService = new FishService("TEST");
+        String data = "aquFullEx" + "\r\n" + "typeTest1" + "\r\n" + 21 + "\r\n" + "aquarium2";
         System.setIn(new ByteArrayInputStream(data.getBytes()));
         //When
         fishService.addFish();
         //Then
         assertThat("AquariumFullException")
                 .isSubstringOf(outContent.toString());
-
-        String queryDelete = """
-                DELETE FROM aquarium WHERE name = 'Atest1';
-                DELETE FROM fish WHERE aquarium_id = 1000; 
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryDelete);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
 
     @Test
-    void printAllFishFromAquarium() {
-        String queryInsert = """
-                INSERT INTO aquarium() VALUES (1000, 'Atest1' ,1);
-                insert into fish() values (500, 'TestX', 'zloty', 23, 1000); 
-                insert into fish() values (501, 'TestXX', 'silver', 50, 1000);
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryInsert);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
+    void moveFishTest() {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
-
-        String data = "Atest1" + "\r\n";
+        FishService fishService = new FishService("TEST");
+        String data = "fish3" + "\r\n" + "aquarium3";
         System.setIn(new ByteArrayInputStream(data.getBytes()));
-
-        FishService fishService = new FishService();
-        fishService.printAllFishFromAquarium();
-        //Then
-        assertThat("TestX zloty 23")
-                .isSubstringOf(outContent.toString());
-        assertThat("TestXX silver 50")
-                .isSubstringOf(outContent.toString());
-
-        String queryDelete = """
-                DELETE FROM aquarium WHERE name = 'Atest1';
-                DELETE FROM fish WHERE aquarium_id = 1000;
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryDelete);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-    }
-
-    @Test
-    void moveFish() {
-        String queryInsert = """
-                INSERT INTO aquarium() VALUES (1000, 'Atest1' ,1);
-                INSERT INTO aquarium() VALUES (1001, 'Atest2' ,1);
-                insert into fish() values (500, 'FishX', 'zloty', 23, 1000);
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryInsert);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
-        String data = "FishX" + "\r\n" + "Atest2" + "\r\n";
-        System.setIn(new ByteArrayInputStream(data.getBytes()));
-
-        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outContent));
-
-        FishService fishService = new FishService();
         fishService.moveFish();
         //Then
-        assertThat("Fish: FishX - moved to Aquarium: Atest2")
+        assertThat("Fish: fish3 - moved to Aquarium: aquarium3")
                 .isSubstringOf(outContent.toString());
-
-        String queryDelete = """
-                DELETE FROM aquarium WHERE name = 'Atest1';
-                DELETE FROM aquarium WHERE name = 'Atest2';
-                DELETE FROM fish WHERE aquarium_id = 1001;
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryDelete);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
 
     @Test
     void getFish() {
-        String queryInsert = """
-                INSERT INTO aquarium() VALUES (1000, 'Atest1' ,1);
-                insert into fish() values (500, 'FishX', 'zloty', 23, 1000);
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryInsert);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        Fish fishG = new Fish(500, "FishX", "zloty", 23, 1000);
+        Fish fishG = new Fish(1503, "fish3", "typ1", 12);
 
-        FishService fishService = new FishService();
-        Fish fishR = fishService.getFish("FishX");
+        FishService fishService = new FishService("TEST");
+        Fish fishR = fishService.getFish("fish3");
         //Then
-        assertThat(fishG).isEqualTo(fishR);
-
-        String queryDelete = """
-                DELETE FROM aquarium WHERE name = 'Atest1';
-                DELETE FROM fish WHERE aquarium_id = 1000;
-                """;
-        try (Statement stmt = ConnectionDB.getStatementForTestDb()) {
-            stmt.execute(queryDelete);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+        assertThat(fishG.toString()).isEqualTo(fishR.toString());
     }
 }
